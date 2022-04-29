@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.searchGroup = new System.Windows.Forms.GroupBox();
+            this.saveButton = new System.Windows.Forms.Button();
             this.searchButton = new System.Windows.Forms.Button();
             this.StreamText = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -36,7 +37,6 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.bgWorker = new System.ComponentModel.BackgroundWorker();
-            this.saveButton = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.searchGroup.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -55,6 +55,16 @@
             this.searchGroup.TabStop = false;
             this.searchGroup.Text = "検索";
             // 
+            // saveButton
+            // 
+            this.saveButton.Location = new System.Drawing.Point(330, 25);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(120, 30);
+            this.saveButton.TabIndex = 5;
+            this.saveButton.Text = "結果保存";
+            this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            // 
             // searchButton
             // 
             this.searchButton.Location = new System.Drawing.Point(210, 25);
@@ -71,7 +81,6 @@
             this.StreamText.Name = "StreamText";
             this.StreamText.Size = new System.Drawing.Size(150, 30);
             this.StreamText.TabIndex = 1;
-            this.StreamText.Text = "テトリス99";
             // 
             // label1
             // 
@@ -115,16 +124,6 @@
             this.bgWorker.WorkerSupportsCancellation = true;
             this.bgWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgWorker_DoWork);
             this.bgWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgWorker_RunWorkerCompleted);
-            // 
-            // saveButton
-            // 
-            this.saveButton.Location = new System.Drawing.Point(330, 25);
-            this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(120, 30);
-            this.saveButton.TabIndex = 5;
-            this.saveButton.Text = "結果保存";
-            this.saveButton.UseVisualStyleBackColor = true;
-            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
             // label2
             // 
