@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CYsearch4
@@ -13,69 +14,84 @@ namespace CYsearch4
             InitializeComponent();
         }
 
-        YTManager yTManager = new YTManager();
-        JArray liveArray = new JArray();
+        YoutubeAPI ytAPI = new YoutubeAPI();
+        JArray viewerArray = new JArray();
 
         private void SearchButton_Click(object sender, EventArgs e)
         {
             liveTree.Nodes.Clear();
-            
+
             if (bgWorker.IsBusy)
             {
                 bgWorker.CancelAsync();
                 searchButton.Text = "検索開始";
             }
-            if (StreamText.Text == "") MessageBox.Show("配信名が入力されていません");
+            if (StreamText.Text == "")
+            {
+                MessageBox.Show("配信名が入力されていません");
+            }
             else
             {
-                searchButton.Text = "検索停止";  
+                searchButton.Text = "検索停止";
                 bgWorker.RunWorkerAsync();
             }
         }
 
-        private void bgWorker_DoWork(object sender, DoWorkEventArgs e)
+        private async void bgWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             statusLabel.Text = "ライブ検索中";
-            JArray liveResult = yTManager.SearchStream(StreamText.Text);
+            JArray liveResult = await ytAPI.SearchStreamAsync(StreamText.Text);
 
             statusLabel.Text = "コメント取得中";
-            liveArray = yTManager.getComment(liveResult);
+            viewerArray = await ytAPI.GetCommentsAsync(liveResult);
+
+            // 非同期処理が完了するまで待機
+            while (!bgWorker.CancellationPending && bgWorker.IsBusy && (viewerArray == null || viewerArray.Count == 0))
+            {
+                await Task.Delay(100);
+            }
+            bgWorker_Completed();
         }
 
-        //終了時
-        private void bgWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void bgWorker_Completed()
         {
-            //代入
-            for (int i = 0; i < liveArray.Count; i++)
-            {
-                liveTree.Nodes.Add(liveArray[i]["title"].ToString());
-                liveTree.Nodes[i].Nodes.Add("動画ID").Nodes.Add(liveArray[i]["videoid"].ToString());
-                liveTree.Nodes[i].Nodes.Add("リスナー");
-                foreach (string viewName in liveArray[i]["view"])
-                {
-                    liveTree.Nodes[i].Nodes[1].Nodes.Add(viewName);
-                }
-                liveTree.Nodes[i].Expand();
-            }
             statusLabel.Text = "取得完了";
-            searchButton.Text = "検索開始";
+
+            foreach (JObject item in viewerArray)
+            {
+                Console.WriteLine(item.ToString());
+                TreeNode liveNode = new TreeNode(item["title"].ToString());
+                liveNode.Nodes.Add("動画ID").Nodes.Add(item["videoid"].ToString());
+                liveNode.Nodes.Add("リスナー");
+
+                foreach (string viewName in item["viewer"])
+                {
+                    liveNode.Nodes[1].Nodes.Add(viewName);
+                }
+
+                liveTree.Invoke(new Action(() =>
+                {
+                    liveTree.Nodes.Add(liveNode);
+                    liveNode.Expand();
+                    searchButton.Text = "検索開始";
+                }));
+            }
         }
 
 
         private void saveButton_Click(object sender, EventArgs e)
         {
-            // SaveFileDialogを表示
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Title = "検索結果を保存する";
             saveFileDialog.Filter = "Json files (*.json)|*.json|Text files (*.txt)|*.txt";
             saveFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
-            saveFileDialog.FileName = @"LiveData.json";
+            saveFileDialog.FileName = @"Result.json";
             DialogResult result = saveFileDialog.ShowDialog();
 
             if (result == DialogResult.OK)
             {
-                //「保存」ボタンクリック時の処理
-                File.WriteAllText(saveFileDialog.FileName, liveArray.ToString());
+                File.WriteAllText(saveFileDialog.FileName, viewerArray.ToString());
             }
         }
 
